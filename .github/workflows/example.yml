@@ -13,6 +13,10 @@ on:
         required: true
       AWS_DEFAULT_REGION:
         required: true
+      AWS_S3_BUCKET:
+        required: true
+      TF_API_TOKEN:
+        required: true
 
 jobs:
   example:
@@ -21,12 +25,56 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Show environment
-        run: env
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Setup premierbloc
+        id: setup
+        uses: premierbloc/setup@0.0.17
+        with:
+          bucket: ${{ secrets.AWS_S3_BUCKET }}
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Check terraform configuration files format
+        run: terraform fmt -check
+
+      - name: Initialize terraform
+        run: terraform init
+
+      - name: Validate terraform configuration files
+        run: terraform validate -no-color
+
+      # - name: Create and/or select terraform workspace
+      #   env:
+      #     NAME: ${{ steps.setup.outputs.environment }}
+      #   run: |
+      #     terraform workspace new $NAME | true
+      #     terraform workspace select $NAME
+
+      # - name: Generate terraform plan
+      #   id: plan
+      #   if: github.event_name != 'pull_request' || github.event.action != 'closed'
+      #   run: terraform plan -no-color -out=tfplan
+
+      # - name: Generate terraform destroy plan (on pull request closure)
+      #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
+      #   run: terraform plan -no-color -destroy -out=tfplan
+
+      # - name: Apply terraform plan
+      #   run: terraform apply -auto-approve tfplan
+
+      # - name: Delete terraform workspace (on pull request closure)
+      #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
+      #   env:
+      #     NAME: ${{ steps.setup.outputs.environment }}
+      #   run: |
+      #     terraform workspace select default
+      #     terraform workspace delete $NAME
