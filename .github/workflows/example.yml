@@ -32,11 +32,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
-      - name: Setup premierbloc
-        id: setup
-        uses: premierbloc/setup@0.0.17
-        with:
-          bucket: ${{ secrets.AWS_S3_BUCKET }}
+      # - name: Setup premierbloc
+      #   id: setup
+      #   env:
+      #     bucket: ${{ secrets.AWS_S3_BUCKET }}
+      #   run: |
+      #     tag=$GITHUB_SHA
+      #     case $GITHUB_REF in
+      #         refs/tags/*        ) environment=production; tag=$GITHUB_REF_NAME ;;
+      #         refs/heads/main    ) environment=stage ;;
+      #         refs/pull/*        ) environment=pullrequest-$(dirname $GITHUB_REF_NAME) ;;
+      #         *                  ) environment=''
+      #     esac
+
+      #     echo "::set-output name=application::$(basename $GITHUB_REPOSITORY)"
+      #     echo "::set-output name=environment::$environment"
+      #     echo "::set-output name=tag::$tag"
+      #     echo "TF_CLI_ARGS_init=-backend-config='bucket=$1' -backend-config='key=${GITHUB_REPOSITORY}' -backend-config='region=${AWS_DEFAULT_REGION}'" >> $GITHUB_ENV
 
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
@@ -47,7 +59,13 @@ jobs:
         run: terraform fmt -check
 
       - name: Initialize terraform
-        run: terraform init
+        env:
+          BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        run: |
+          terraform init \
+          -backend-config="bucket=${BUCKET}" \
+          -backend-config="key=${GITHUB_REPOSITORY}" \
+          -backend-config="region=${AWS_DEFAULT_REGION}"
 
       - name: Validate terraform configuration files
         run: terraform validate -no-color
