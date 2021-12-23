@@ -3,6 +3,10 @@ name: Reusable workflow example
 on:
   workflow_call:
     inputs:
+      destroy:
+        default: false
+        required: true
+        type: boolean
       region:
         required: true
         type: string
@@ -62,9 +66,6 @@ jobs:
       - name: Validate terraform configuration files
         run: terraform validate -no-color
 
-      - name: Show environment
-        run: env
-
       - name: Create and/or select terraform workspace
         env:
           WORKSPACE: ${{ steps.retrieve.outputs.environment }}
@@ -72,10 +73,9 @@ jobs:
           terraform workspace new $WORKSPACE | true
           terraform workspace select $WORKSPACE
 
-      # - name: Generate terraform plan
-      #   id: plan
-      #   if: github.event_name != 'pull_request' || github.event.action != 'closed'
-      #   run: terraform plan -no-color -out=tfplan
+      - name: Generate terraform plan
+        if: inputs.destroy != true
+        run: terraform plan -no-color -out=tfplan
 
       # - name: Generate terraform destroy plan (on pull request closure)
       #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
