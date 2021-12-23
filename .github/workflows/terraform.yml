@@ -72,7 +72,7 @@ jobs:
         env:
           WORKSPACE: ${{ steps.retrieve.outputs.environment }}
         run: |
-          terraform workspace new $WORKSPACE | true
+          terraform workspace new $WORKSPACE || true
           terraform workspace select $WORKSPACE
 
       - name: Generate terraform plan
