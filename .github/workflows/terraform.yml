@@ -62,11 +62,11 @@ jobs:
       - name: Retrieve application, environment and tag
         id: retrieve
         run: |
-          ref=${GITHUB_HEAD_REF:-$GITHUB_REF}
+          ref=$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF} | sed -e 's#refs/heads/##')
           case $ref in
-              refs/tags/*        ) environment=production ;;
-              refs/heads/main    ) environment=stage ;;
-              *                  ) environment=$(echo $ref | cut -d "/" -f3- | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+              refs/tags/*   ) environment=production ;;
+              main          ) environment=stage ;;
+              *             ) environment=$(echo $ref | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           esac
 
           echo "::set-output name=environment::$environment"
