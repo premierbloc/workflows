@@ -2,16 +2,13 @@ name: Reusable workflow example
 
 on:
   workflow_call:
-    # inputs:
-    #   username:
-    #     required: true
-    #     type: string
+    inputs:
+      region:
+        required: true
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_DEFAULT_REGION:
         required: true
       AWS_S3_BUCKET:
         required: true
@@ -30,25 +27,19 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-region: ${{ inputs.region }}
 
-      # - name: Setup premierbloc
-      #   id: setup
-      #   env:
-      #     bucket: ${{ secrets.AWS_S3_BUCKET }}
-      #   run: |
-      #     tag=$GITHUB_SHA
-      #     case $GITHUB_REF in
-      #         refs/tags/*        ) environment=production; tag=$GITHUB_REF_NAME ;;
-      #         refs/heads/main    ) environment=stage ;;
-      #         refs/pull/*        ) environment=pullrequest-$(dirname $GITHUB_REF_NAME) ;;
-      #         *                  ) environment=''
-      #     esac
+      - name: Retrieve application, environment and tag
+        id: retrieve
+        run: |
+          case $GITHUB_REF in
+              refs/tags/*        ) environment=production ;;
+              refs/heads/main    ) environment=stage ;;
+              refs/pull/*        ) environment=pullrequest-$(dirname $GITHUB_REF_NAME) ;;
+              *                  ) environment=$(echo $GITHUB_REF | cut -d "/" -f3- | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          esac
 
-      #     echo "::set-output name=application::$(basename $GITHUB_REPOSITORY)"
-      #     echo "::set-output name=environment::$environment"
-      #     echo "::set-output name=tag::$tag"
-      #     echo "TF_CLI_ARGS_init=-backend-config='bucket=$1' -backend-config='key=${GITHUB_REPOSITORY}' -backend-config='region=${AWS_DEFAULT_REGION}'" >> $GITHUB_ENV
+          echo "::set-output name=environment::$environment"
 
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
@@ -70,12 +61,15 @@ jobs:
       - name: Validate terraform configuration files
         run: terraform validate -no-color
 
-      # - name: Create and/or select terraform workspace
-      #   env:
-      #     NAME: ${{ steps.setup.outputs.environment }}
-      #   run: |
-      #     terraform workspace new $NAME | true
-      #     terraform workspace select $NAME
+      - name: Show environment
+        run: env
+
+      - name: Create and/or select terraform workspace
+        env:
+          WORKSPACE: ${{ steps.retrieve.outputs.environment }}
+        run: |
+          terraform workspace new $WORKSPACE | true
+          terraform workspace select $WORKSPACE
 
       # - name: Generate terraform plan
       #   id: plan
