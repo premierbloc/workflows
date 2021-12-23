@@ -76,9 +76,9 @@ jobs:
         if: inputs.destroy != true
         run: terraform plan -no-color -out=tfplan
 
-      # - name: Generate terraform destroy plan (on pull request closure)
-      #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
-      #   run: terraform plan -no-color -destroy -out=tfplan
+      - name: Generate terraform plan (destroy)
+        if: inputs.destroy
+        run: terraform plan -no-color -destroy -out=tfplan
 
       # - name: Apply terraform plan
       #   run: terraform apply -auto-approve tfplan
