@@ -36,6 +36,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.region }}
 
+      - name: Show environment
+        run: env
+
       - name: Retrieve application, environment and tag
         id: retrieve
         run: |
