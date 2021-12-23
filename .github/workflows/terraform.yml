@@ -39,18 +39,6 @@ jobs:
       - name: Show environment
         run: env
 
-      - name: Retrieve application, environment and tag
-        id: retrieve
-        run: |
-          ref=${GITHUB_HEAD_REF:-$GITHUB_REF}
-          case $ref in
-              refs/tags/*        ) environment=production ;;
-              refs/heads/main    ) environment=stage ;;
-              *                  ) environment=$(echo $ref | cut -d "/" -f3- | tr '/' '-' | tr '[:upper:]' '[:lower:]')
-          esac
-
-          echo "::set-output name=environment::$environment"
-
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -70,6 +58,18 @@ jobs:
 
       - name: Validate terraform configuration files
         run: terraform validate -no-color
+
+      - name: Retrieve application, environment and tag
+        id: retrieve
+        run: |
+          ref=${GITHUB_HEAD_REF:-$GITHUB_REF}
+          case $ref in
+              refs/tags/*        ) environment=production ;;
+              refs/heads/main    ) environment=stage ;;
+              *                  ) environment=$(echo $ref | cut -d "/" -f3- | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          esac
+
+          echo "::set-output name=environment::$environment"
 
       - name: Create and/or select terraform workspace
         env:
