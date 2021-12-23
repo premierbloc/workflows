@@ -42,10 +42,9 @@ jobs:
       - name: Retrieve application, environment and tag
         id: retrieve
         run: |
-          case $GITHUB_REF in
+          case ${GITHUB_HEAD_REF:-$GITHUB_REF} in
               refs/tags/*        ) environment=production ;;
               refs/heads/main    ) environment=stage ;;
-              refs/pull/*        ) environment=pullrequest-$(dirname $GITHUB_REF_NAME) ;;
               *                  ) environment=$(echo $GITHUB_REF | cut -d "/" -f3- | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           esac
 
