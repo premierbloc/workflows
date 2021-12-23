@@ -93,4 +93,4 @@ jobs:
           WORKSPACE: ${{ steps.retrieve.outputs.environment }}
         run: |
           terraform workspace select default
-          terraform workspace delete $NAME
+          terraform workspace delete $WORKSPACE
