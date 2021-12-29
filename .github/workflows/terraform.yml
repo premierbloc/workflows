@@ -15,7 +15,7 @@ on:
         required: false
         type: boolean
       environment:
-        required: true
+        required: false
         type: string
       region:
         required: true
@@ -64,9 +64,23 @@ jobs:
       - name: Validate terraform configuration files
         run: terraform validate -no-color
 
+      - name: Retrieve workspace (environment)
+        id: retrieve
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          ref=$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF} | sed -e 's#refs/heads/##')
+          case $ref in
+              refs/tags/*   ) workspace=production ;;
+              main          ) workspace=stage ;;
+              *             ) workspace=$(echo $ref | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          esac
+
+          echo "::set-output name=workspace::${ENVIRONMENT:-$workspace}"
+
       - name: Create and/or select terraform workspace
         env:
-          WORKSPACE: ${{ inputs.environment }}
+          WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
         run: |
           terraform workspace new $WORKSPACE || true
           terraform workspace select $WORKSPACE
@@ -90,7 +104,7 @@ jobs:
       - name: Delete terraform workspace
         if: inputs.destroy
         env:
-          WORKSPACE: ${{ inputs.environment }}
+          WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
         run: |
           terraform workspace select default
           terraform workspace delete $WORKSPACE
