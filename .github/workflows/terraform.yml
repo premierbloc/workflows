@@ -77,7 +77,7 @@ jobs:
               *             ) environment=$(echo $ref | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           esac
 
-          echo "::set-output name=application=${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
+          echo "::set-output name=application::${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
           echo "::set-output name=environment::${ENVIRONMENT:-$environment}"
 
       - name: Create and/or select terraform workspace
