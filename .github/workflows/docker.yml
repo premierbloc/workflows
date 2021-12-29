@@ -58,6 +58,12 @@ jobs:
         run: |
           echo "::set-output name=sha::$(docker build --quiet .)"
 
+      - name: Create ECR repository (if not exist)
+        env:
+          APPLICATION: ${{ steps.retrieve.outputs.application }}
+        run: |
+          aws ecr create-repository --repository-name $APPLICATION || true
+
       - name: Tag and push docker image to ECR
         id: push
         env:
