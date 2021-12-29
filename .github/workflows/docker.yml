@@ -1,0 +1,75 @@
+name: Docker
+
+on:
+  workflow_call:
+    inputs:
+      application:
+        required: false
+        type: string
+      build:
+        default: true
+        required: false
+        type: boolean
+      environment:
+        required: false
+        type: string
+      region:
+        required: true
+        type: string
+    outputs:
+      image:
+        description: "The docker image with tag"
+        value: ${{ jobs.docker.outputs.image }}
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Login to Amazon ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Retrieve application and tag
+        id: retrieve
+        env:
+          APPLICATION: ${{ inputs.application }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          echo "::set-output name=application::${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
+          echo "::set-output name=tag::${TAG:-$(git describe --always)}"
+
+      - name: Build docker image
+        id: build
+        if: inputs.build == true
+        run: |
+          echo "::set-output name=sha::$(docker build --quiet .)"
+
+      - name: Tag and push docker image to ECR
+        id: push
+        env:
+          APPLICATION: ${{ steps.retrieve.outputs.application }}
+          SHA: ${{ steps.build.outputs.sha }}
+          REGISTRY: ${{ steps.login.outputs.registry }}
+          TAG: ${{ steps.retrieve.outputs.tag }}
+        run: |
+          docker tag $SHA $REGISTRY/$APPLICATION:$TAG
+          docker push $REGISTRY/$APPLICATION:$TAG
+          echo "::set-output name=image::$REGISTRY/$APPLICATION:$TAG"

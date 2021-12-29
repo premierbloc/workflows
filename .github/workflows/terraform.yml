@@ -1,4 +1,4 @@
-name: Terraform (infrastructure)
+name: Terraform
 
 on:
   workflow_call:
