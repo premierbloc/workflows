@@ -3,13 +3,13 @@ name: Terraform
 on:
   workflow_call:
     inputs:
-      application:
-        required: true
-        type: string
       apply:
         default: true
         required: false
         type: boolean
+      arguments:
+        required: false
+        type: string
       destroy:
         default: false
         required: false
@@ -74,13 +74,13 @@ jobs:
       - name: Generate terraform plan
         if: inputs.destroy != true
         env:
-          TF_VAR_application: ${{ inputs.application }}
+          TF_CLI_ARGS: ${{ inputs.arguments }}
         run: terraform plan -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
         if: inputs.destroy
         env:
-          TF_VAR_application: ${{ inputs.application }}
+          TF_CLI_ARGS: ${{ inputs.arguments }}
         run: terraform plan -no-color -destroy -out=tfplan
 
       - name: Apply terraform plan
