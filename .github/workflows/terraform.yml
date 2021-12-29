@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       application:
-        required: false
+        required: true
         type: string
       apply:
         default: true
@@ -15,7 +15,7 @@ on:
         required: false
         type: boolean
       environment:
-        required: false
+        required: true
         type: string
       region:
         required: true
@@ -64,25 +64,9 @@ jobs:
       - name: Validate terraform configuration files
         run: terraform validate -no-color
 
-      - name: Retrieve application, environment and tag
-        id: retrieve
-        env:
-          APPLICATION: ${{ inputs.application }}
-          ENVIRONMENT: ${{ inputs.environment }}
-        run: |
-          ref=$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF} | sed -e 's#refs/heads/##')
-          case $ref in
-              refs/tags/*   ) environment=production ;;
-              main          ) environment=stage ;;
-              *             ) environment=$(echo $ref | tr '/' '-' | tr '[:upper:]' '[:lower:]')
-          esac
-
-          echo "::set-output name=application::${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
-          echo "::set-output name=environment::${ENVIRONMENT:-$environment}"
-
       - name: Create and/or select terraform workspace
         env:
-          WORKSPACE: ${{ steps.retrieve.outputs.environment }}
+          WORKSPACE: ${{ inputs.environment }}
         run: |
           terraform workspace new $WORKSPACE || true
           terraform workspace select $WORKSPACE
@@ -90,13 +74,13 @@ jobs:
       - name: Generate terraform plan
         if: inputs.destroy != true
         env:
-          TF_VAR_application: ${{ steps.retrieve.outputs.application }}
+          TF_VAR_application: ${{ inputs.application }}
         run: terraform plan -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
         if: inputs.destroy
         env:
-          TF_VAR_application: ${{ steps.retrieve.outputs.application }}
+          TF_VAR_application: ${{ inputs.application }}
         run: terraform plan -no-color -destroy -out=tfplan
 
       - name: Apply terraform plan
@@ -106,7 +90,7 @@ jobs:
       - name: Delete terraform workspace
         if: inputs.destroy
         env:
-          WORKSPACE: ${{ steps.retrieve.outputs.environment }}
+          WORKSPACE: ${{ inputs.environment }}
         run: |
           terraform workspace select default
           terraform workspace delete $WORKSPACE

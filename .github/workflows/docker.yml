@@ -4,13 +4,16 @@ on:
   workflow_call:
     inputs:
       application:
-        required: false
+        required: true
         type: string
       build:
         default: true
         required: false
         type: boolean
       region:
+        required: true
+        type: string
+      tag:
         required: true
         type: string
     outputs:
@@ -44,14 +47,6 @@ jobs:
         id: login
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Retrieve application and tag
-        id: retrieve
-        env:
-          APPLICATION: ${{ inputs.application }}
-        run: |
-          echo "::set-output name=application::${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
-          echo "::set-output name=tag::${TAG:-$(git describe --always)}"
-
       - name: Build docker image
         id: build
         if: inputs.build == true
@@ -60,17 +55,17 @@ jobs:
 
       - name: Create ECR repository (if not exist)
         env:
-          APPLICATION: ${{ steps.retrieve.outputs.application }}
+          APPLICATION: ${{ inputs.application }}
         run: |
           aws ecr create-repository --repository-name $APPLICATION || true
 
       - name: Tag and push docker image to ECR
         id: push
         env:
-          APPLICATION: ${{ steps.retrieve.outputs.application }}
+          APPLICATION: ${{ inputs.application }}
           SHA: ${{ steps.build.outputs.sha }}
           REGISTRY: ${{ steps.login.outputs.registry }}
-          TAG: ${{ steps.retrieve.outputs.tag }}
+          TAG: ${{ inputs.tag }}
         run: |
           docker tag $SHA $REGISTRY/$APPLICATION:$TAG
           docker push $REGISTRY/$APPLICATION:$TAG
