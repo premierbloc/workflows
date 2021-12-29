@@ -10,9 +10,6 @@ on:
         default: true
         required: false
         type: boolean
-      environment:
-        required: false
-        type: string
       region:
         required: true
         type: string
@@ -51,7 +48,6 @@ jobs:
         id: retrieve
         env:
           APPLICATION: ${{ inputs.application }}
-          ENVIRONMENT: ${{ inputs.environment }}
         run: |
           echo "::set-output name=application::${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
           echo "::set-output name=tag::${TAG:-$(git describe --always)}"
