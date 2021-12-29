@@ -77,9 +77,7 @@ jobs:
               *             ) environment=$(echo $ref | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           esac
 
-          application=$(basename $GITHUB_REPOSITORY)
-
-          echo "TF_VAR_application=${APPLICATION:-$application}" >> $GITHUB_ENV
+          echo "::set-output name=application=${APPLICATION:-$(basename $GITHUB_REPOSITORY)}"
           echo "::set-output name=environment::${ENVIRONMENT:-$environment}"
 
       - name: Create and/or select terraform workspace
@@ -91,10 +89,14 @@ jobs:
 
       - name: Generate terraform plan
         if: inputs.destroy != true
+        env:
+          TF_VAR_application: ${{ steps.retrieve.outputs.application }}
         run: terraform plan -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
         if: inputs.destroy
+        env:
+          TF_VAR_application: ${{ steps.retrieve.outputs.application }}
         run: terraform plan -no-color -destroy -out=tfplan
 
       - name: Apply terraform plan
