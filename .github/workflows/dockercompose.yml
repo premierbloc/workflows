@@ -33,6 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Update docker-compose
+        run: pip install docker-compose
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
