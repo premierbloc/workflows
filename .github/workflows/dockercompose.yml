@@ -36,9 +36,7 @@ jobs:
       - name: Update docker-compose
         run: |
           docker-compose version
-          curl -L "https://github.com/docker/compose/releases/download/2.2.1/docker-compose-$(uname -s)-$(uname -m)"  -o docker-compose
-          chmod +x docker-compose
-          docker-compose version
+          sudo apt-get remove docker-compose
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
