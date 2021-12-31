@@ -55,19 +55,19 @@ jobs:
         id: build
         if: inputs.build == true
         env:
-          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/${{ github.repository }}/"
         run: docker-compose build
 
       - name: Push docker images to ECR
         id: push
         if: inputs.push == true
         env:
-          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/${{ github.repository }}/"
         run: docker-compose push
 
       - name: Generate configuration
         env:
-          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/${{ github.repository }}/"
         run: docker-compose config --format json > configuration.json
 
       - name: Archive configuration
