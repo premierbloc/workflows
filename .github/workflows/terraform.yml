@@ -44,6 +44,7 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
         with:
+          name: configuration
           path: .
 
       - name: Configure AWS credentials
