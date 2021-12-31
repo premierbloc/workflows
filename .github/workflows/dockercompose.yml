@@ -1,0 +1,78 @@
+name: Docker
+
+on:
+  workflow_call:
+    inputs:
+      # application:
+      #   required: false
+      #   type: string
+      build:
+        default: true
+        required: false
+        type: boolean
+      push:
+        default: true
+        required: false
+        type: boolean
+      region:
+        required: true
+        type: string
+      # tag:
+      #   required: false
+      #   type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+
+      - name: Login to Amazon ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Create ECR repositories (if not exist)
+        run: |
+          for image in $(docker-compose config --format json | jq '.services[] | select(.build != null) | .image' -r); do
+            image=${image#*/}
+            aws ecr create-repository --repository-name ${image%:*} || true
+          done
+
+      - name: Build docker images
+        id: build
+        if: inputs.build == true
+        env:
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+        run: docker-compose build
+
+      - name: Push docker images to ECR
+        id: push
+        if: inputs.push == true
+        env:
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+        run: docker-compose push
+
+      - name: Generate configuration
+        env:
+          REGISTRY_REPOSITORY_URI: "${{ steps.login.outputs.registry }}/{{ github.repository }}/"
+        run: docker-compose config --format json > configuration.json
+
+      - name: Archive configuration
+        uses: actions/upload-artifact@v2
+        with:
+          name: configuration
+          path: configuration.json
+          retention-days: 5
