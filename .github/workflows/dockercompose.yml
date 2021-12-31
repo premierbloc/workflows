@@ -35,10 +35,10 @@ jobs:
 
       - name: Update docker-compose
         run: |
-          docker-composer version
+          docker-compose version
           curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)"  -o docker-compose
           chmod +x docker-compose
-          docker-composer version
+          docker-compose version
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
