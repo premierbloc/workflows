@@ -37,6 +37,8 @@ jobs:
         run: |
           docker-compose version
           sudo apt-get remove docker-compose
+          sudo rm /usr/local/bin/docker-compose
+          pip uninstall docker-compose
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
