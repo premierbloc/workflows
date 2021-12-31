@@ -89,17 +89,17 @@ jobs:
         if: inputs.destroy != true
         env:
           TF_CLI_ARGS: ${{ inputs.arguments }}
-        run: terraform plan -no-color -out=tfplan
+        run: terraform plan -input=false -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
         if: inputs.destroy
         env:
           TF_CLI_ARGS: ${{ inputs.arguments }}
-        run: terraform plan -no-color -destroy -out=tfplan
+        run: terraform plan -input=false -no-color -destroy -out=tfplan
 
       - name: Apply terraform plan
         if: inputs.apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -input=false -no-color tfplan
 
       - name: Delete terraform workspace
         if: inputs.destroy
