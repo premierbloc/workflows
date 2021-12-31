@@ -65,12 +65,12 @@ jobs:
       - name: Build docker images
         id: build
         if: inputs.build == true
-        run: docker-compose build --quiet
+        run: docker-compose build
 
       - name: Push docker images to ECR
         id: push
         if: inputs.push == true
-        run: docker-compose push --quiet
+        run: docker-compose push
 
       - name: Generate configuration
         run: docker-compose config --format json > configuration.json
