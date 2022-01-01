@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Show variables (if exist)
+      - name: Import variables to environment
         if: inputs.variables != null
         run: |
           echo "${{ inputs.variables }}" | while IFS= read -r variable
@@ -34,8 +34,12 @@ jobs:
       - name: Generate variables file
         id: generate
         run: |
-          echo "hello" > variables.json
-          echo "::set-output name=file::variables.json"
+          yaml=variables.yml
+          json=variables.json
+          envsubst < premierbloc.yml > $yaml
+          python3 -c 'import sys, yaml, json; print(json.dumps(yaml.safe_load(sys.stdin.read())))' < $yaml > $json
+          rm $yaml
+          echo "::set-output name=file::$json"
 
       - name: Archive vairiables file
         uses: actions/upload-artifact@v2
