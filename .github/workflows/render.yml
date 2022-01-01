@@ -26,7 +26,7 @@ jobs:
       - name: Show variables (if exist)
         if: inputs.variables != null
         run: |
-          echo "$variable" | while IFS= read -r line
+          echo ${{ inputs.variables }} | while IFS= read -r line
           do
             echo $line
           done
