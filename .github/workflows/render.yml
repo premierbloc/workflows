@@ -26,11 +26,7 @@ jobs:
       - name: Show variables (if exist)
         if: inputs.variables != null
         run: |
-          # echo "${{ inputs.variables }}" | while IFS= read -r line
-          # do
-          #   echo $line
-          # done
-          for variable in "${{ inputs.variables }}"
+          echo "${{ inputs.variables }}" | while IFS= read -r variable
           do
             echo "$variable" >> $GITHUB_ENV
           done
