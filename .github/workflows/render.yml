@@ -1,0 +1,43 @@
+name: Render
+
+on:
+  workflow_call:
+    inputs:
+      file:
+        required: true
+        type: string
+      variables:
+        required: false
+        type: string
+    outputs:
+      artifact:
+        value: ${{ jobs.render.outputs.artifact }}
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    outputs:
+      artifact: ${{ steps.generate.outputs.file }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Show variables (if exist)
+        if: inputs.variables != null
+        run: |
+          echo ${{ inputs.variables }}
+
+      - name: Generate variables file
+        id: generate
+        run: |
+          echo "hello" > variables.json
+          echo "::set-output name=file::variables.json"
+
+      - name: Archive vairiables file
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: ${{ steps.generate.outputs.file }}
+          path: ${{ steps.generate.outputs.file }}
+          retention-days: 1
