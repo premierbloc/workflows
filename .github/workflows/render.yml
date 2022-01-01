@@ -26,7 +26,10 @@ jobs:
       - name: Show variables (if exist)
         if: inputs.variables != null
         run: |
-          echo ${{ inputs.variables }}
+          for variable in ${{ inputs.variables }}
+          do
+            echo "$variable" >> $GITHUB_ENV
+          done
 
       - name: Generate variables file
         id: generate
