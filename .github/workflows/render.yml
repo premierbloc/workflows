@@ -3,11 +3,11 @@ name: Render
 on:
   workflow_call:
     inputs:
+      environment-variables:
+        required: false
+        type: string
       file:
         required: true
-        type: string
-      variables:
-        required: false
         type: string
     outputs:
       artifact:
