@@ -71,11 +71,11 @@ jobs:
         run: terraform fmt -check
 
       - name: Initialize terraform
-        env:
-          BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        # env:
+        #   BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         run: |
           terraform init \
-          -backend-config="bucket=${BUCKET}" \
+          -backend-config="bucket=${{ secrets.AWS_S3_BUCKET }}" \
           -backend-config="key=${GITHUB_REPOSITORY}" \
           -backend-config="region=${AWS_DEFAULT_REGION}"
 
@@ -97,11 +97,11 @@ jobs:
           echo "::set-output name=workspace::${ENVIRONMENT:-$workspace}"
 
       - name: Create and/or select terraform workspace
-        env:
-          WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
+        # env:
+        #   WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
         run: |
-          terraform workspace new $WORKSPACE || true
-          terraform workspace select $WORKSPACE
+          terraform workspace new ${{ steps.retrieve.outputs.workspace }} || true
+          terraform workspace select ${{ steps.retrieve.outputs.workspace }}
 
       - name: Generate terraform plan
         if: inputs.destroy != true
@@ -121,8 +121,8 @@ jobs:
 
       - name: Delete terraform workspace
         if: inputs.destroy
-        env:
-          WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
+        # env:
+        #   WORKSPACE: ${{ steps.retrieve.outputs.workspace }}
         run: |
           terraform workspace select default
-          terraform workspace delete $WORKSPACE
+          terraform workspace delete ${{ steps.retrieve.outputs.workspace }}
