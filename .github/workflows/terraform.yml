@@ -23,9 +23,6 @@ on:
       region:
         required: true
         type: string
-      variables:
-        required: false
-        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -42,11 +39,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Show variables (if exist)
-        if: inputs.variables != null
-        run:
-          echo ${{ inputs.variables }}
 
       - name: Download all workflow run artifacts
         if: inputs.artifact != null

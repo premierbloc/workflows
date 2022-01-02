@@ -3,12 +3,12 @@ name: Render
 on:
   workflow_call:
     inputs:
-      variables:
-        required: false
-        type: string
       file:
         required: true
         type: string
+    secrets:
+      variables:
+        required: false
     outputs:
       artifact:
         value: ${{ jobs.render.outputs.artifact }}
@@ -24,9 +24,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Import variables to environment
-        if: inputs.variables != null
+        if: secrets.variables != null
         run: |
-          echo "${{ inputs.variables }}" | while IFS= read -r variable
+          echo "${{ secrets.variables }}" | while IFS= read -r variable
           do
             echo "$variable" >> $GITHUB_ENV
           done
