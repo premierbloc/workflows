@@ -62,19 +62,12 @@ jobs:
           echo "::set-output name=tag::$(git describe --always)"
 
       - name: Create ECR repository (if not exist)
-        # env:
-        #   REPOSITORY: ${{ steps.retrieve.outputs.application }}
         run: aws ecr create-repository --repository-name ${{ steps.retrieve.outputs.application }} || true
 
       - name: Tag and push docker image to ECR
         id: push
-        env:
-          APPLICATION: ${{ steps.retrieve.outputs.application }}
-          REGISTRY: ${{ steps.login.outputs.registry }}
-          SHA: ${{ steps.build.outputs.sha }}
-          TAG: ${{ steps.retrieve.outputs.tag }}
         run: |
-          image=$REGISTRY/$APPLICATION:$TAG
-          docker tag $SHA $image
+          image=${{ steps.login.outputs.registry }}/${{ steps.retrieve.outputs.application }}:${{ steps.retrieve.outputs.tag }}
+          docker tag ${{ steps.build.outputs.sha }} $image
           docker push $image
           echo "::set-output name=image::$image"
