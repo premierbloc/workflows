@@ -3,7 +3,7 @@ name: Render
 on:
   workflow_call:
     inputs:
-      environment-variables:
+      variables:
         required: false
         type: string
       file:
