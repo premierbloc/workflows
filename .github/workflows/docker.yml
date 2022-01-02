@@ -3,9 +3,6 @@ name: Docker
 on:
   workflow_call:
     inputs:
-      application:
-        required: true
-        type: string
       build:
         default: true
         required: false
@@ -13,13 +10,15 @@ on:
       region:
         required: true
         type: string
-      tag:
-        required: true
-        type: string
     outputs:
+      application:
+        value: ${{ jobs.docker.outputs.application }}
       image:
-        description: "The docker image with tag"
         value: ${{ jobs.docker.outputs.image }}
+      registry:
+        value: ${{ jobs.docker.outputs.registry }}
+      tag:
+        value: ${{ jobs.docker.outputs.tag }}
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -31,7 +30,10 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
+      application: ${{ steps.retrieve.outputs.application }}
       image: ${{ steps.push.outputs.image }}
+      registry: ${{ steps.login.outputs.registry }}
+      tag: ${{ steps.retrieve.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v2
@@ -50,23 +52,28 @@ jobs:
       - name: Build docker image
         id: build
         if: inputs.build == true
+        run: echo "::set-output name=sha::$(docker build --quiet .)"
+
+      - name: Retrieve application and tag
+        id: retrieve
         run: |
-          echo "::set-output name=sha::$(docker build --quiet .)"
+          echo "::set-output name=application::$(basename $GITHUB_REPOSITORY)"
+          echo "::set-output name=tag::$(git describe --always)"
 
       - name: Create ECR repository (if not exist)
         env:
-          APPLICATION: ${{ inputs.application }}
-        run: |
-          aws ecr create-repository --repository-name $APPLICATION || true
+          REPOSITORY: ${{ steps.retrieve.outputs.application }}
+        run: aws ecr create-repository --repository-name $REPOSITORY || true
 
       - name: Tag and push docker image to ECR
         id: push
         env:
-          APPLICATION: ${{ inputs.application }}
-          SHA: ${{ steps.build.outputs.sha }}
+          APPLICATION: ${{ steps.retrieve.outputs.application }}
           REGISTRY: ${{ steps.login.outputs.registry }}
-          TAG: ${{ inputs.tag }}
+          SHA: ${{ steps.build.outputs.sha }}
+          TAG: ${{ steps.retrieve.outputs.tag }}
         run: |
-          docker tag $SHA $REGISTRY/$APPLICATION:$TAG
-          docker push $REGISTRY/$APPLICATION:$TAG
-          echo "::set-output name=image::$REGISTRY/$APPLICATION:$TAG"
+          image=$REGISTRY/$APPLICATION:$TAG
+          docker tag $SHA $image
+          docker push $image
+          echo "::set-output name=image::$image"
