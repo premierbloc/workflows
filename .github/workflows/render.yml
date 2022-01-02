@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Import variables to environment
-        if: ${{ secrets.variables }} != null
+        # if: ${{ secrets.variables }} != null
         run: |
           echo "${{ secrets.variables }}" | while IFS= read -r variable
           do
