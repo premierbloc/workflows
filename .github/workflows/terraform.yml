@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Overwrite Github configuration
-        run: git config --global url."https://oauth2:${{ secrets.TOKEN }}@github.com".insteadOf ssh://git@github.com
+        run: git config --global url."https://oauth2:${{ secrets.TOKEN }}@github.com".insteadOf https://github.com
 
       - name: Download all workflow run artifacts
         if: inputs.artifact != null
