@@ -48,7 +48,7 @@ jobs:
           git config --global url."https://oauth2:${TOKEN}@github.com/premierbloc".insteadOf "https://github.com/premierbloc"
           cat ~/.gitconfig
         env:
-          GH_TOKEN: ${{ secrets.TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
 
       - name: Download all workflow run artifacts
         if: inputs.artifact != null
