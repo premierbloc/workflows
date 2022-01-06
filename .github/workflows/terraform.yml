@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Overwrite Github configuration
-      - run: |
+        run: |
           git config --local --remove-section http."https://github.com/"
           git config --global url."https://oauth2:${TOKEN}@github.com/premierbloc".insteadOf "https://github.com/premierbloc"
           cat ~/.gitconfig
