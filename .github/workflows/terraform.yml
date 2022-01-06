@@ -41,9 +41,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.TOKEN }}
-          persist-credentials: true
+
+      - name: Overwrite Github configuration
+        run: git config --global url."https://oauth2:${{ secrets.TOKEN }}@github.com".insteadOf https://github.com
 
       - name: Download all workflow run artifacts
         if: inputs.artifact != null
