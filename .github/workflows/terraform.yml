@@ -30,6 +30,8 @@ on:
         required: true
       AWS_S3_BUCKET:
         required: true
+      GITHUB_TOKEN:
+        required: true
       TF_API_TOKEN:
         required: true
 
@@ -39,6 +41,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Download all workflow run artifacts
         if: inputs.artifact != null
