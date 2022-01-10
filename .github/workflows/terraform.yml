@@ -54,6 +54,9 @@ jobs:
           name: ${{ inputs.artifact }}
           path: .
 
+      - name: Show local folder
+        run: ls -la
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
