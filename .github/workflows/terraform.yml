@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ inputs.artifact }}
-          path: .
+          path: ${{ inputs.artifact }}
 
       - name: Show local folder
         run: ls -la
