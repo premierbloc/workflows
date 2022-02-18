@@ -101,7 +101,7 @@ jobs:
         env:
           TF_CLI_ARGS: ${{ inputs.arguments }}
         run: |
-          ls -la variables.json
+          ls -la
           terraform plan -input=false -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
