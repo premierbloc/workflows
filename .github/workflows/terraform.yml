@@ -100,9 +100,7 @@ jobs:
         if: inputs.destroy != true
         env:
           TF_CLI_ARGS: ${{ inputs.arguments }}
-        run: |
-          ls -la
-          terraform plan -input=false -no-color -out=tfplan
+        run: terraform plan -input=false -no-color -out=tfplan
 
       - name: Generate terraform plan (destroy)
         if: inputs.destroy
